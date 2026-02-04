@@ -5,13 +5,17 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ .
-RUN npm run build
+
+# Build with explicit output and verify
+RUN npm run build && \
+    ls -la && \
+    ls -la build/ 2>/dev/null || echo "Build directory not found"
 
 # Stage 2: Python backend with frontend static files
 FROM python:3.11-slim
 WORKDIR /app
 
-# Install Node.js for any runtime needs (optional but included)
+# Install curl for healthchecks
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*

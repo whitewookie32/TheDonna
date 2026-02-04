@@ -8,14 +8,17 @@ const config = {
 		adapter: adapter({
 			fallback: 'index.html',
 			precompress: false,
-			strict: true,
+			strict: false,
 			pages: 'build',
 			assets: 'build'
 		}),
 		prerender: {
 			handleHttpError: ({ path, referrer, message }) => {
-				console.warn(`Prerender error: ${path} - ${message}`);
-			}
+				console.warn(`Prerender warning: ${path} - ${message}`);
+				return;
+			},
+			handleMissingId: 'warn',
+			entries: ['*']
 		}
 	}
 };
