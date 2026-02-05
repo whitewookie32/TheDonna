@@ -8,6 +8,7 @@ import io
 import json
 import base64
 import asyncio
+import websockets
 from typing import Optional
 from datetime import datetime
 
@@ -16,11 +17,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import httpx
+from together import Together
 
 # Configuration
 TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY", "")
 TOGETHER_BASE_URL = "https://api.together.xyz/v1"
-WHISPER_MODEL = "whisper-large-v3-turbo"
+WHISPER_MODEL = "openai/whisper-large-v3-turbo"
 LLM_MODEL = "kimi-k2-5"  # Together.ai hosted Kimi 2.5
 ORPHEUS_MODEL = "orpheus-3b-0.1-ft"
 
@@ -71,23 +73,25 @@ class AudioBuffer:
 
 
 async def transcribe_audio(audio_bytes: bytes) -> str:
-    """Send audio to Together.ai Whisper"""
-    async with httpx.AsyncClient() as client:
-        files = {
-            "file": ("audio.webm", io.BytesIO(audio_bytes), "audio/webm"),
-            "model": (None, WHISPER_MODEL),
-        }
-        headers = {"Authorization": f"Bearer {TOGETHER_API_KEY}"}
+    """Send audio to Together.ai Whisper API"""
+    try:
+        # Create Together client
+        client = Together(api_key=TOGETHER_API_KEY)
         
-        response = await client.post(
-            f"{TOGETHER_BASE_URL}/audio/transcriptions",
-            headers=headers,
-            files=files,
-            timeout=30.0
+        # Create a temporary file-like object
+        audio_file = io.BytesIO(audio_bytes)
+        audio_file.name = "audio.webm"
+        
+        # Use Together SDK for transcription
+        response = client.audio.transcriptions.create(
+            model=WHISPER_MODEL,
+            file=audio_file
         )
-        response.raise_for_status()
-        result = response.json()
-        return result.get("text", "").strip()
+        
+        return response.text.strip()
+    except Exception as e:
+        print(f"Transcription error: {e}")
+        raise
 
 
 async def chat_with_donna(user_message: str, conversation_history: list) -> str:
