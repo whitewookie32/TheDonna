@@ -1,14 +1,30 @@
-# Simple Dockerfile for Railway - Backend only
-FROM python:3.11-slim
+# Multi-stage build for Railway
+# Stage 1: Build frontend
+FROM node:18-alpine AS frontend-builder
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ .
+RUN npm run build
 
+# Stage 2: Python backend with frontend static files
+FROM python:3.11-slim
 WORKDIR /app
 
-# Install dependencies
+# Install curl for healthchecks
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy backend requirements and install
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy backend code
 COPY backend/ ./backend/
+
+# Copy built frontend from stage 1
+COPY --from=frontend-builder /app/frontend/build ./frontend/build
 
 # Expose port (Railway sets PORT env var)
 EXPOSE 8000
