@@ -22,7 +22,7 @@ from openai import OpenAI
 # Configuration
 TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY", "")
 TOGETHER_BASE_URL = "https://api.together.xyz/v1"
-WHISPER_MODEL = "openai/whisper-large-v3-turbo"
+WHISPER_MODEL = "openai/whisper-large-v3"
 LLM_MODEL = "kimi-k2-5"  # Together.ai hosted Kimi 2.5
 ORPHEUS_MODEL = "orpheus-3b-0.1-ft"
 
