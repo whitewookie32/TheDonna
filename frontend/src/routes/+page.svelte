@@ -30,8 +30,17 @@
 	function connectWebSocket() {
 		status = 'Connecting...';
 		
-		// Get WebSocket URL from environment or use default
-		const backendUrl = import.meta.env.VITE_BACKEND_URL || 'ws://localhost:8000';
+		// Get WebSocket URL - auto-detect in production
+		let backendUrl;
+		if (import.meta.env.VITE_BACKEND_URL) {
+			backendUrl = import.meta.env.VITE_BACKEND_URL;
+		} else if (window.location.hostname === 'localhost') {
+			backendUrl = 'ws://localhost:8000';
+		} else {
+			// Production: use same host with wss://
+			backendUrl = `wss://${window.location.host}`;
+		}
+		console.log('Connecting to WebSocket:', backendUrl);
 		ws = new WebSocket(`${backendUrl}/ws`);
 		
 		ws.onopen = () => {
