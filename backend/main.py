@@ -38,10 +38,17 @@ app.add_middleware(
 # Serve static frontend files
 import os
 static_path = os.path.join(os.path.dirname(__file__), "..", "frontend", "build")
+print(f"Static path: {static_path}")
+print(f"Static path exists: {os.path.exists(static_path)}")
 if os.path.exists(static_path):
+    print(f"Contents: {os.listdir(static_path)}")
     # Mount static assets at /static
-    app.mount("/static", StaticFiles(directory=os.path.join(static_path, "static")), name="static-assets")
-    app.mount("/assets", StaticFiles(directory=os.path.join(static_path, "assets")), name="assets")
+    static_dir = os.path.join(static_path, "static")
+    assets_dir = os.path.join(static_path, "assets")
+    if os.path.exists(static_dir):
+        app.mount("/static", StaticFiles(directory=static_dir), name="static-assets")
+    if os.path.exists(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
 
 
 class AudioBuffer:
