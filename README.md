@@ -1,6 +1,21 @@
-# The Donna - Real-time Voice Assistant
+# The Donna - Voice Assistant (Archived)
 
-A real-time voice chat application featuring Donna Paulson, the Executive Assistant personality. Built with FastAPI, SvelteKit, WebSocket, and Together.ai (Whisper + Kimi 2.5 + Orpheus).
+> **⚠️ PROJECT SUNSET**  
+> This project has been archived and is no longer maintained.  
+> The live deployment has been removed from Railway.  
+> The code remains here as a reference snapshot.
+
+---
+
+## What It Was
+
+A real-time voice chat application featuring "Donna Paulson" - an Executive Assistant personality powered by Together.ai (Whisper + LLM + TTS).
+
+Built with:
+- **Backend**: FastAPI + WebSocket
+- **Frontend**: SvelteKit PWA
+- **AI Stack**: Together.ai (Whisper STT, DeepSeek-V3 LLM, Cartesia TTS)
+- **Deployment**: Railway
 
 ## Architecture
 
@@ -14,121 +29,59 @@ A real-time voice chat application featuring Donna Paulson, the Executive Assist
                        │                        │                        │
                        ▼                        ▼                        ▼
               ┌─────────────┐          ┌─────────────┐          ┌─────────────┐
-             │   Together   │          │   Together   │          │   Together   │
-              │   Whisper    │          │  Kimi 2.5   │          │   Orpheus    │
-              │   (STT)      │          │   (Donna)   │          │   (TTS)      │
+              │   Together   │          │   Together   │          │   Together   │
+              │   Whisper    │          │  DeepSeek   │          │   Cartesia   │
+              │   (STT)      │          │    V3       │          │   (TTS)      │
               └─────────────┘          └─────────────┘          └─────────────┘
 ```
 
-## Quick Start
+## Why It Ended
 
-### Prerequisites
+The project reached a point of diminishing returns:
 
-- Python 3.11+
-- Node.js 18+
-- Together.ai API key
+1. **Audio Format Hell** - Browser WebM → Whisper WAV conversion required ffmpeg, adding complexity
+2. **API Model Whack-a-Mole** - Together.ai's model naming conventions kept changing (`kimi-k2-5` → `deepseek-ai/DeepSeek-V3`, `orpheus-3b-0.1-ft` → `cartesia/sonic-3`)
+3. **TTS Integration Issues** - Audio playback in browsers is finicky; autoplay restrictions, format support
+4. **Simpler Alternative** - The user realized they could just... talk to their AI assistant directly in Telegram
 
-### Backend (Railway/Local)
+## Key Lessons
+
+See [LESSONS.md](./LESSONS.md) for a detailed post-mortem.
+
+## Code Structure
+
+```
+TheDonna/
+├── backend/
+│   ├── main.py           # FastAPI + WebSocket server
+│   ├── requirements.txt  # Python deps
+│   └── Dockerfile        # Container config
+├── frontend/
+│   ├── src/              # SvelteKit source
+│   ├── static/           # Static assets
+│   └── build/            # Production build
+└── README.md             # This file
+```
+
+## Running Locally (For Reference)
 
 ```bash
+# Backend
 cd backend
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Set environment variable
-export TOGETHER_API_KEY=your_key_here
-
-# Run locally
+export TOGETHER_API_KEY=your_key
 uvicorn main:app --reload
-```
 
-### Frontend (Local Development)
-
-```bash
+# Frontend
 cd frontend
-
-# Install dependencies
 npm install
-
-# Create .env file
-cp .env.example .env
-# Edit .env and set VITE_BACKEND_URL=ws://localhost:8000
-
-# Run development server
 npm run dev
-```
-
-## Deployment
-
-### Railway (Backend)
-
-1. Connect your GitHub repo to Railway
-2. Set environment variables:
-   - `TOGETHER_API_KEY`: Your Together.ai API key
-3. Deploy
-
-### Vercel/Netlify (Frontend)
-
-1. Connect your repo
-2. Set build command: `npm run build`
-3. Set output directory: `build`
-4. Add environment variable:
-   - `VITE_BACKEND_URL`: Your Railway backend WebSocket URL (wss://...)
-
-## Environment Variables
-
-### Backend
-| Variable | Description |
-|----------|-------------|
-| `TOGETHER_API_KEY` | Together.ai API key |
-| `PORT` | Server port (default: 8000) |
-
-### Frontend
-| Variable | Description |
-|----------|-------------|
-| `VITE_BACKEND_URL` | WebSocket URL of backend |
-
-## Features
-
-- 🎤 Real-time voice recording with silence detection
-- 🗣️ WebSocket-based audio streaming
-- 🤖 Together.ai Whisper for speech-to-text
-- 💬 Kimi 2.5 with Donna Paulson personality
-- 🔊 Together.ai Orpheus for text-to-speech
-- 📱 PWA support (install on mobile)
-- 🔄 Auto-reconnection
-
-## API Endpoints
-
-- `GET /` - API info
-- `GET /health` - Health check
-- `WS /ws` - WebSocket for voice chat
-
-## WebSocket Protocol
-
-### Client → Server
-```json
-{"type": "audio_chunk", "data": "base64_audio"}
-{"type": "end_utterance"}
-{"type": "ping"}
-```
-
-### Server → Client
-```json
-{"type": "chunk_received"}
-{"type": "status", "message": "..."}
-{"type": "transcript", "text": "..."}
-{"type": "response_text", "text": "..."}
-{"type": "audio_response", "audio": "base64_mp3", "format": "mp3"}
-{"type": "error", "message": "..."}
-{"type": "pong"}
 ```
 
 ## License
 
-MIT
+MIT - Do whatever you want with this code.
+
+---
+
+*"It's handled." - Donna Paulson*
