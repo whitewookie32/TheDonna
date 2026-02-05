@@ -25,7 +25,7 @@ TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY", "")
 TOGETHER_BASE_URL = "https://api.together.xyz/v1"
 WHISPER_MODEL = "openai/whisper-large-v3"
 LLM_MODEL = "deepseek-ai/DeepSeek-V3"  # Reliable, fast model on Together.ai
-ORPHEUS_MODEL = "canopylabs/orpheus-3b-0.1-ft"  # Correct Together.ai model name
+ORPHEUS_MODEL = "cartesia/sonic-3"  # Cartesia Sonic-3 TTS
 
 app = FastAPI(title="The Donna - Voice Chat")
 
@@ -150,7 +150,7 @@ NEVER break character. You ARE Donna."""
 
 
 async def stream_tts(text: str) -> bytes:
-    """Convert text to speech using Together.ai Orpheus with streaming"""
+    """Convert text to speech using Together.ai with Cartesia Sonic-3"""
     from together import Together
     
     # Create Together client
@@ -163,15 +163,8 @@ async def stream_tts(text: str) -> bytes:
         voice="tara"  # Donna's voice
     )
     
-    # Read the audio content into bytes
-    audio_bytes = b""
-    for chunk in response:
-        if hasattr(chunk, 'content'):
-            audio_bytes += chunk.content
-        elif isinstance(chunk, bytes):
-            audio_bytes += chunk
-    
-    return audio_bytes
+    # The response has content attribute with the audio bytes
+    return response.content
 
 
 @app.websocket("/ws")
