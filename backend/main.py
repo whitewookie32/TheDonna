@@ -42,13 +42,9 @@ print(f"Static path: {static_path}")
 print(f"Static path exists: {os.path.exists(static_path)}")
 if os.path.exists(static_path):
     print(f"Contents: {os.listdir(static_path)}")
-    # Mount static assets at /static
-    static_dir = os.path.join(static_path, "static")
-    assets_dir = os.path.join(static_path, "assets")
-    if os.path.exists(static_dir):
-        app.mount("/static", StaticFiles(directory=static_dir), name="static-assets")
-    if os.path.exists(assets_dir):
-        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+    # Mount the entire build directory for static file serving
+    # but only for paths that aren't API routes
+    app.mount("/_app", StaticFiles(directory=os.path.join(static_path, "_app")), name="svelte-app")
 
 
 class AudioBuffer:
