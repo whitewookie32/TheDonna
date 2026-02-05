@@ -39,7 +39,9 @@ app.add_middleware(
 import os
 static_path = os.path.join(os.path.dirname(__file__), "..", "frontend", "build")
 if os.path.exists(static_path):
-    app.mount("/static", StaticFiles(directory=static_path, html=True), name="static")
+    # Mount static assets at /static
+    app.mount("/static", StaticFiles(directory=os.path.join(static_path, "static")), name="static-assets")
+    app.mount("/assets", StaticFiles(directory=os.path.join(static_path, "assets")), name="assets")
 
 
 class AudioBuffer:
@@ -290,11 +292,24 @@ async def health_check():
 
 
 @app.get("/")
-async def root():
-    # Serve the frontend index.html if it exists, otherwise return API info
+async def serve_index():
+    """Serve the frontend index.html"""
     index_path = os.path.join(static_path, "index.html")
+    print(f"Looking for index.html at: {index_path}")
     if os.path.exists(index_path):
+        print(f"Found index.html! Serving it.")
         return FileResponse(index_path)
+    print(f"index.html not found, returning API info")
+    return {
+        "message": "The Donna Voice Chat API",
+        "websocket_endpoint": "/ws",
+        "docs": "/docs"
+    }
+
+
+@app.get("/api")
+async def api_info():
+    """API info endpoint"""
     return {
         "message": "The Donna Voice Chat API",
         "websocket_endpoint": "/ws",
