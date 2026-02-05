@@ -18,13 +18,14 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import httpx
 from openai import OpenAI
+from together import Together
 
 # Configuration
 TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY", "")
 TOGETHER_BASE_URL = "https://api.together.xyz/v1"
 WHISPER_MODEL = "openai/whisper-large-v3"
-LLM_MODEL = "kimi-k2-5"  # Together.ai hosted Kimi 2.5
-ORPHEUS_MODEL = "orpheus-3b-0.1-ft"
+LLM_MODEL = "deepseek-ai/DeepSeek-V3"  # Reliable, fast model on Together.ai
+ORPHEUS_MODEL = "canopylabs/orpheus-3b-0.1-ft"  # Correct Together.ai model name
 
 app = FastAPI(title="The Donna - Voice Chat")
 
@@ -149,28 +150,28 @@ NEVER break character. You ARE Donna."""
 
 
 async def stream_tts(text: str) -> bytes:
-    """Convert text to speech using Together.ai Orpheus"""
-    async with httpx.AsyncClient() as client:
-        headers = {
-            "Authorization": f"Bearer {TOGETHER_API_KEY}",
-            "Content-Type": "application/json"
-        }
-        
-        payload = {
-            "model": ORPHEUS_MODEL,
-            "input": text,
-            "voice": "tara",  # Donna's voice
-            "response_format": "mp3",
-        }
-        
-        response = await client.post(
-            f"{TOGETHER_BASE_URL}/audio/speech",
-            headers=headers,
-            json=payload,
-            timeout=60.0
-        )
-        response.raise_for_status()
-        return response.content
+    """Convert text to speech using Together.ai Orpheus with streaming"""
+    from together import Together
+    
+    # Create Together client
+    client = Together(api_key=TOGETHER_API_KEY)
+    
+    # Generate speech using Together SDK
+    response = client.audio.speech.create(
+        model=ORPHEUS_MODEL,
+        input=text,
+        voice="tara"  # Donna's voice
+    )
+    
+    # Read the audio content into bytes
+    audio_bytes = b""
+    for chunk in response:
+        if hasattr(chunk, 'content'):
+            audio_bytes += chunk.content
+        elif isinstance(chunk, bytes):
+            audio_bytes += chunk
+    
+    return audio_bytes
 
 
 @app.websocket("/ws")
