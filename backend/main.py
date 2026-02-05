@@ -74,23 +74,48 @@ class AudioBuffer:
 
 
 async def transcribe_audio(audio_bytes: bytes) -> str:
-    """Send audio to Together.ai Whisper API using OpenAI-compatible endpoint"""
+    """Send audio to Together.ai Whisper API using Together SDK"""
     try:
-        # Create OpenAI client with Together's base URL
-        client = OpenAI(
-            api_key=TOGETHER_API_KEY,
-            base_url="https://api.together.xyz/v1"
-        )
+        # Create Together client
+        client = Together(api_key=TOGETHER_API_KEY)
         
-        # Create a temporary file-like object
-        audio_file = io.BytesIO(audio_bytes)
-        audio_file.name = "audio.webm"
+        # Save audio to temp file (Whisper needs proper file format)
+        import tempfile
+        import subprocess
         
-        # Use OpenAI-compatible API for transcription
-        response = client.audio.transcriptions.create(
-            model=WHISPER_MODEL,
-            file=audio_file
-        )
+        # Convert webm to wav using ffmpeg
+        with tempfile.NamedTemporaryFile(suffix=".webm", delete=False) as input_file:
+            input_file.write(audio_bytes)
+            input_path = input_file.name
+        
+        output_path = input_path.replace(".webm", ".wav")
+        
+        # Convert to wav format
+        try:
+            subprocess.run(
+                ["ffmpeg", "-i", input_path, "-ar", "16000", "-ac", "1", "-y", output_path],
+                check=True,
+                capture_output=True,
+                timeout=10
+            )
+        except (subprocess.CalledProcessError, FileNotFoundError) as e:
+            print(f"ffmpeg conversion failed: {e}, trying direct upload...")
+            output_path = input_path  # Fall back to original
+        
+        # Use Together SDK for transcription
+        with open(output_path, "rb") as audio_file:
+            response = client.audio.transcriptions.create(
+                model=WHISPER_MODEL,
+                file=output_path
+            )
+        
+        # Cleanup temp files
+        try:
+            os.unlink(input_path)
+            if output_path != input_path:
+                os.unlink(output_path)
+        except:
+            pass
         
         return response.text.strip()
     except Exception as e:

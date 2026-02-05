@@ -11,9 +11,10 @@ RUN npm run build
 FROM python:3.11-slim
 WORKDIR /app
 
-# Install curl for healthchecks
+# Install curl for healthchecks and ffmpeg for audio conversion
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy backend requirements and install
