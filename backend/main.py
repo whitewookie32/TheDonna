@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import httpx
-from together import Together
+from openai import OpenAI
 
 # Configuration
 TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY", "")
@@ -73,16 +73,19 @@ class AudioBuffer:
 
 
 async def transcribe_audio(audio_bytes: bytes) -> str:
-    """Send audio to Together.ai Whisper API"""
+    """Send audio to Together.ai Whisper API using OpenAI-compatible endpoint"""
     try:
-        # Create Together client
-        client = Together(api_key=TOGETHER_API_KEY)
+        # Create OpenAI client with Together's base URL
+        client = OpenAI(
+            api_key=TOGETHER_API_KEY,
+            base_url="https://api.together.xyz/v1"
+        )
         
         # Create a temporary file-like object
         audio_file = io.BytesIO(audio_bytes)
         audio_file.name = "audio.webm"
         
-        # Use Together SDK for transcription
+        # Use OpenAI-compatible API for transcription
         response = client.audio.transcriptions.create(
             model=WHISPER_MODEL,
             file=audio_file
