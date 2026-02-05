@@ -27,8 +27,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy backend code
 COPY backend/ ./backend/
 
-# Copy built frontend from stage 1
+# Copy built frontend from stage 1 - verify build output first
 COPY --from=frontend-builder /app/frontend/build ./frontend/build
+
+# Verify files exist
+RUN ls -la ./frontend/build/
 
 # Expose port (Railway sets PORT env var)
 EXPOSE 8000

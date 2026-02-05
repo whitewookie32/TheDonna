@@ -13,6 +13,8 @@ from datetime import datetime
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 import httpx
 
 # Configuration
@@ -32,6 +34,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve static frontend files
+import os
+static_path = os.path.join(os.path.dirname(__file__), "..", "frontend", "build")
+if os.path.exists(static_path):
+    app.mount("/static", StaticFiles(directory=static_path, html=True), name="static")
 
 
 class AudioBuffer:
@@ -283,6 +291,10 @@ async def health_check():
 
 @app.get("/")
 async def root():
+    # Serve the frontend index.html if it exists, otherwise return API info
+    index_path = os.path.join(static_path, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
     return {
         "message": "The Donna Voice Chat API",
         "websocket_endpoint": "/ws",
